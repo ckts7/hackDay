@@ -1,0 +1,24 @@
+body {
+  background-color: green;
+}
+h1 {
+  color: red;
+}
+
+div {
+  text-align: center;
+  height: 150px;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  margin-bottom: 50px;
+}
+
+div img {
+  margin-left: 10px;
+  height: 100%;
+}
+div input {
+  margin-left: 10px;
+  height: 100%;
+}

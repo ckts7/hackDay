@@ -1,0 +1,35 @@
+{
+  "name": "christoffer_sundqvist",
+  "version": "1.0.0",
+  "description": "HackDay Project for Christoffer Sundqvist",
+  "main": "index.js",
+  "scripts": {
+    "lint": "eslint . --fix",
+    "dev": "webpack-dev-server --"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/saltsthlm/salt-spring19-hackdayW09.git"
+  },
+  "keywords": [
+    "HackDay",
+    "Christoffer",
+    "Sundqvist"
+  ],
+  "author": "Christoffer Sundqvist",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/saltsthlm/salt-spring19-hackdayW09/issues"
+  },
+  "devDependencies": {
+    "eslint": "^5.15.3",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-plugin-import": "^2.16.0"
+  },
+  "dependencies": {
+    "webpack": "^4.35.0",
+    "webpack-cli": "^3.3.4",
+    "webpack-dev-server": "^3.7.2"
+  },
+  "homepage": "https://github.com/saltsthlm/salt-spring19-hackdayW09#readme"
+}
