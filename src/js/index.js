@@ -14,7 +14,6 @@ const playerCardHolder = document.querySelector('.player2-card-holder');
 const playerOpenCardHolder = document.querySelector('.player2-openCard-holder');
 const playerEndCardHolder = document.querySelector('.player2-endCard-holder');
 let openCard;
-
 const players = [];
 
 const player1 = {
@@ -26,21 +25,99 @@ const player2 = {
 players.push(player1);
 players.push(player2);
 
-
-function createDeck() {
-  for (let i = 0; i < 13; i++) {
-    hearts.push(`H${values[i]}`);
-    diamonds.push(`D${values[i]}`);
-    spades.push(`S${values[i]}`);
-    clubs.push(`C${values[i]}`);
+function convertClothedCard(card) {
+  switch (card) {
+    case 'A':
+      card = 14;
+      return card;
+    case 'K':
+      card = 13;
+      return card;
+    case 'Q':
+      card = 12;
+      return card;
+    case 'J':
+      card = 11;
+      return card;
+    default:
+      return card;
   }
-  colors.forEach((color) => {
-    color.forEach((card) => {
-      deck.push(card);
+}
+
+function compSorter(a, b) {
+  a = convertClothedCard(a.substring(1));
+  b = convertClothedCard(b.substring(1));
+  if (a > b) {
+    return 1;
+  }
+  if (a < b) {
+    return -1;
+  }
+  return 0;
+}
+
+function allowedPlay(card) {
+  let checkCard = 0;
+  const playCard = convertClothedCard(card.substring(1));
+  if (openCard != null) checkCard = convertClothedCard(openCard.substring(1));
+  if (playCard === '2') {
+    return 'startover';
+  }
+  if (playCard === '10') {
+    return 'destroy';
+  }
+  if (playCard >= checkCard) {
+    return 'play';
+  }
+  return false;
+}
+
+function render(cardType, player) {
+  let htmlContent = '';
+  let htmlType;
+  player.name === 'Player 1' ? htmlType = 'input' : htmlType = 'image';
+  if (player.name === 'CPU Player' && cardType !== 'downCards') {
+    player[cardType].forEach((card) => {
+      htmlContent += `<${htmlType} id="${card}" type="image" src='cards/RED_BACK.svg'/>`;
     });
-  });
-  deck = deck.splice(12,[20]);
-  deck = shuffle(deck);
+  } else {
+    player[cardType].forEach((card) => {
+      htmlContent += `<${htmlType} id="${card}" type="image" src='cards/${card}.svg'/>`;
+    });
+  }
+  if (cardType === 'cards') {
+    player.name === 'CPU Player' ? cpuCardHolder.innerHTML = htmlContent : playerCardHolder.innerHTML = htmlContent;
+    if (player.name === 'Player 1') {
+      player[cardType].forEach((card) => {
+        const playCard = document.querySelector(`#${card}`);
+        playCard.addEventListener('click', () => {
+          playersTurn(playCard.id);
+        });
+      });
+    }
+  }
+  if (cardType === 'downCards') {
+    player.name === 'CPU Player' ? cpuOpenCardHolder.innerHTML = htmlContent : playerOpenCardHolder.innerHTML = htmlContent;
+    if (player.name === 'Player 1') {
+      player.downCards.forEach((card) => {
+        const playCard = document.querySelector(`#${card}`);
+        playCard.addEventListener('click', () => {
+          playersTurn(playCard.id);
+        });
+      });
+    }
+  }
+  if (cardType === 'endCards') {
+    player.name === 'CPU Player' ? cpuEndCardHolder.innerHTML = htmlContent : playerEndCardHolder.innerHTML = htmlContent;
+    if (player.name === 'Player 1') {
+      player.endCards.forEach((card) => {
+        const playCard = document.querySelector(`#${card}`);
+        playCard.addEventListener('click', () => {
+          playersTurn(playCard.id);
+        });
+      });
+    }
+  }
 }
 
 function shuffle(array) {
@@ -56,12 +133,28 @@ function shuffle(array) {
   return array;
 }
 
+function createDeck() {
+  for (let i = 0; i < 13; i++) {
+    hearts.push(`H${values[i]}`);
+    diamonds.push(`D${values[i]}`);
+    spades.push(`S${values[i]}`);
+    clubs.push(`C${values[i]}`);
+  }
+  colors.forEach((color) => {
+    color.forEach((card) => {
+      deck.push(card);
+    });
+  });
+  deck = deck.splice(12, [20]);
+  deck = shuffle(deck);
+}
+
 function firstDeal() {
   let start = true;
-  while(start) {
-    let startCard = deck.pop();
-    let checkCard = convertClothedCard(startCard.substring(1));
-    if(checkCard === '2' || checkCard > 8) {
+  while (start) {
+    const startCard = deck.pop();
+    const checkCard = convertClothedCard(startCard.substring(1));
+    if (checkCard === '2' || checkCard > 8) {
       deck.unshift(startCard);
     } else {
       playedCards.push(startCard);
@@ -160,7 +253,10 @@ function playersTurn(cardPlayed) {
   }
   accepted = allowedPlay(cardPlayed);
   if (accepted) {
-    const moveToPlayed = currentPlayer[cardType].splice(currentPlayer[cardType].findIndex(card => card === cardPlayed), 1)[0];
+    const moveToPlayed = currentPlayer[cardType]
+      .splice(currentPlayer[cardType]
+        .findIndex(card => card === cardPlayed), 1)[0];
+
     playedCards.push(moveToPlayed);
     openCard = playedCards.slice(-1)[0];
     if (deck.length === 0) {
@@ -196,7 +292,7 @@ function playersTurn(cardPlayed) {
     render('endCards', currentPlayer);
   }
   if (currentPlayer.endCards.length === 0) {
-    cpuEndCardHolder.innerHTML = '<h1>Winner!!!</h1>';
+    playerEndCardHolder.innerHTML = '<h1>Winner!!!</h1>';
   }
   if (accepted === 'startover') {
     openCard = null;
@@ -266,7 +362,9 @@ function computerTurn() {
   }
   if (playableCard.length > 0) {
     playableCard = playableCard.sort(compSorter);
-    const moveToPlayed = currentPlayer[cardType].splice(currentPlayer[cardType].findIndex(card => card === playableCard[0]), 1)[0];
+    const moveToPlayed = currentPlayer[cardType]
+      .splice(currentPlayer[cardType]
+        .findIndex(card => card === playableCard[0]), 1)[0];
     playedCards.push(moveToPlayed);
     openCard = playedCards.slice(-1)[0];
     if (deck.length === 0) {
@@ -321,97 +419,6 @@ function computerTurn() {
   } else {
     currentPlayer.isTurn = !currentPlayer.isTurn;
     restingPlayer.isTurn = !restingPlayer.isTurn;
-  }
-}
-
-
-function compSorter(a, b) {
-  a = convertClothedCard(a.substring(1));
-  b = convertClothedCard(b.substring(1));
-  if (a > b) {
-    return 1;
-  }
-  if (a < b) {
-    return -1;
-  }
-}
-
-function render(cardType, player) {
-  htmlContent = '';
-  let htmlType;
-  player.name === "Player 1" ? htmlType = 'input' : htmlType = 'image';
-  if(player.name === 'CPU Player') {
-    player[cardType].forEach((card) => {
-      htmlContent += `<${htmlType} id="${card}" type="image" src='cards/RED_BACK.svg'/>`;
-    });
-  } else {
-    player[cardType].forEach((card) => {
-      htmlContent += `<${htmlType} id="${card}" type="image" src='cards/${card}.svg'/>`;
-    });
-  }
-  if (cardType === 'cards') {
-    player.name === 'CPU Player' ? cpuCardHolder.innerHTML = htmlContent : playerCardHolder.innerHTML = htmlContent;
-    if (player.name === 'Player 1') {
-      player[cardType].forEach((card) => {
-        const playCard = document.querySelector(`#${card}`);
-        playCard.addEventListener('click', () => {
-          playersTurn(playCard.id);
-        });
-      });
-    }
-  }
-  if (cardType === 'downCards') {
-    player.name === 'CPU Player' ? cpuOpenCardHolder.innerHTML = htmlContent : playerOpenCardHolder.innerHTML = htmlContent;
-    if (player.name === 'Player 1') {
-      player.downCards.forEach((card) => {
-        const playCard = document.querySelector(`#${card}`);
-        playCard.addEventListener('click', () => {
-          playersTurn(playCard.id);
-        });
-      });
-    }
-  }
-  if (cardType === 'endCards') {
-    player.name === 'CPU Player' ? cpuEndCardHolder.innerHTML = htmlContent : playerEndCardHolder.innerHTML = htmlContent;
-    if (player.name === 'Player 1') {
-      player.endCards.forEach((card) => {
-        const playCard = document.querySelector(`#${card}`);
-        playCard.addEventListener('click', () => {
-          playersTurn(playCard.id);
-        });
-      });
-    }
-  }
-}
-
-function allowedPlay(card) {
-  let checkCard = 0;
-  let playCard = convertClothedCard(card.substring(1));
-  if (openCard != null) checkCard = convertClothedCard(openCard.substring(1));
-  if (playCard === '2') {
-    return 'startover';
-  }
-  if (playCard === '10') {
-    return 'destroy'
-  }
-  if (playCard >= checkCard) {
-    return 'play';
-  }
-  return false;
-}
-
-function convertClothedCard(card) {
-  switch (card) {
-    case 'A':
-      return card = 14;
-    case 'K':
-      return card = 13;
-    case 'Q':
-      return card = 12;
-    case 'J':
-      return card = 11;
-    default:
-      return card;
   }
 }
 
