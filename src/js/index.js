@@ -152,13 +152,9 @@ function playersTurn(cardPlayed) {
       currentPlayer.cards.push(newCard);
     }
   } else {
-    if (deck.length > 0) {
-      const newCard = deck.pop();
-      currentPlayer.cards.push(newCard);
-    }
-    // currentPlayer.cards.concat(playedCards);
-    // playedCards.length = 0;
-    // openCard = null;
+    currentPlayer.cards = [...currentPlayer.cards, ...playedCards]; 
+    playedCards.length = 0;
+    openCard = null;
     currentPlayer.noPlay = true;
   }
   if (currentPlayer.noPlay) {
@@ -169,13 +165,6 @@ function playersTurn(cardPlayed) {
       deckHolder.innerHTML = `<img class='card' src='cards/RED_BACK.svg'><img class='card' src='cards/${openCard}.svg'>`;
     }
   }
-  // if (currentPlayer.cards.length >= 0) {
-  //   render('cards', currentPlayer);
-  // }
-  // if (currentPlayer.cards.length === 0 && currentPlayer.downCards.length > 0) {
-  //   console.log('I am inside of this fucking shit');
-  //   render('downCards', currentPlayer);
-  // }
   if (currentPlayer.cards.length >= 0) {
     render('cards', currentPlayer);
   }
@@ -193,15 +182,11 @@ function playersTurn(cardPlayed) {
     setTimeout(() => {
       computerTurn();
     }, 1000);
-
   }
-  // if (accepted != 'destroy' || accepted != 'startover') {
-  // } else {
-  //   playersTurn();
-  // }
 }
 
 function playDownCard(cardPlayed) {
+  let accepted = ''
   const currentPlayer = players.filter((player) => {
     if (player.isTurn) {
       return player;
@@ -212,12 +197,9 @@ function playDownCard(cardPlayed) {
       return player;
     }
   })[0];
-  let accepted = false;
   accepted = allowedPlay(cardPlayed);
   if (accepted) {
-    console.log(currentPlayer.downCards);
     const moveToPlayed = currentPlayer.downCards.splice(currentPlayer.downCards.findIndex(card => card === cardPlayed), 1)[0];
-    // console.log(moveToPlayed);
     playedCards.push(moveToPlayed);
     openCard = playedCards.slice(-1)[0];
     if (deck.length === 0) {
@@ -226,30 +208,36 @@ function playDownCard(cardPlayed) {
       deckHolder.innerHTML = `<img class='card' src='cards/RED_BACK.svg'><img class='card' src='cards/${openCard}.svg'>`;
     }
   } else {
-    currentPlayer.noPlay = true;
+    currentPlayer.downCards = [...currentPlayer.downCards, ...playedCards]; 
+    playedCards.length = 0;
+    openCard = null;
+    currentPlayer.noPlay = true;  
   }
-  currentPlayer.isTurn = !currentPlayer.isTurn;
-  restingPlayer.isTurn = !restingPlayer.isTurn;
-
   if (currentPlayer.noPlay) {
     openCard = null;
     deckHolder.innerHTML = `<img class='card' src='cards/${openCard}.svg'>`;
   }
-  // render('downCards', currentPlayer);
   if (currentPlayer.downCards.length >= 0) {
     render('downCards', currentPlayer);
   }
   if (currentPlayer.downCards.length === 0) {
-    console.log('I am inside of this fucking shit');
     render('endCards', currentPlayer);
   }
-  setTimeout(() => {
-    computerTurn();
-  }, 1000);
+  if (accepted === 'startover') {
+    openCard = null; 
+  } else if (accepted === 'destroy') {
+    playedCards.length = 0;
+    openCard = null;
+  } else {
+    currentPlayer.isTurn = !currentPlayer.isTurn;
+    restingPlayer.isTurn = !restingPlayer.isTurn;
+    setTimeout(() => {
+      computerTurn();
+    }, 1000);
+  }
 }
 
 function playEndCard(cardPlayed) {
-  console.log('Hey plyDownCard');
   const currentPlayer = players.filter((player) => {
     if (player.isTurn) {
       return player;
@@ -265,7 +253,6 @@ function playEndCard(cardPlayed) {
   if (accepted) {
     console.log(currentPlayer.downCards);
     const moveToPlayed = currentPlayer.endCards.splice(currentPlayer.endCards.findIndex(card => card === cardPlayed), 1)[0];
-    // console.log(moveToPlayed);
     playedCards.push(moveToPlayed);
     openCard = playedCards.slice(-1)[0];
     if (deck.length === 0) {
@@ -274,11 +261,11 @@ function playEndCard(cardPlayed) {
       deckHolder.innerHTML = `<img class='card' src='cards/RED_BACK.svg'><img class='card' src='cards/${openCard}.svg'>`;
     }
   } else {
+    currentPlayer.endCards = [...currentPlayer.endCards, ...playedCards]; 
+    playedCards.length = 0;
+    openCard = null;
     currentPlayer.noPlay = true;
-  }
-  currentPlayer.isTurn = !currentPlayer.isTurn;
-  restingPlayer.isTurn = !restingPlayer.isTurn;
-  // render('endCards', currentPlayer);
+    }
 
   if (currentPlayer.noPlay) {
     openCard = null;
@@ -292,7 +279,15 @@ function playEndCard(cardPlayed) {
   }
   if (currentPlayer.endCards.length === 0) {
     playerEndCardHolder.innerHTML = '<h1>Winner!!!</h1>';
+  } 
+  if (accepted === 'startover') {
+    openCard = null; 
+  } else if (accepted === 'destroy') {
+    playedCards.length = 0;
+    openCard = null;
   } else {
+    currentPlayer.isTurn = !currentPlayer.isTurn;
+    restingPlayer.isTurn = !restingPlayer.isTurn;
     setTimeout(() => {
       computerTurn();
     }, 1000);
@@ -353,17 +348,12 @@ function computerTurn() {
       currentPlayer[cardType].push(newCard);
     }
   } else {
-    if (deck.length > 0) {
-      const newCard = deck.pop();
-      currentPlayer[cardType].push(newCard);
-    }
+    currentPlayer.cards = [...currentPlayer.cards, ...playedCards]; 
+    playedCards.length = 0;
+    openCard = null;
     currentPlayer.noPlay = true;
   }
-  // if (currentPlayer[cardType].length === 0) { // this function should be removed in game ready
-  //   currentPlayer.noPlay = true;
-  // }
   if (currentPlayer.noPlay) {
-    console.log('Comp turn, inside noPlay');
     openCard = null;
     if (deck.length === 0) {
       deckHolder.innerHTML = `<img class='card' src='cards/${openCard}.svg'>`;
@@ -377,7 +367,6 @@ function computerTurn() {
     render('cards', currentPlayer);
   }
   if (currentPlayer.cards.length === 0 && currentPlayer.downCards.length > 0) {
-    console.log('I am inside of this fucking shit');
     render('downCards', currentPlayer);
   }
   if (currentPlayer.downCards.length === 0 && currentPlayer.endCards.length > 0) {
@@ -387,7 +376,6 @@ function computerTurn() {
   if (currentPlayer.endCards.length === 0) {
     cpuEndCardHolder.innerHTML = '<h1>Winner!!!</h1>';
   }
-  // render('cards', currentPlayer);
 }
 
 function compSorter(a, b) {
@@ -432,7 +420,6 @@ function render(cardType, player) {
     if (player.name === 'Player 1') {
       player.downCards.forEach((card) => {
         const playCard = document.querySelector(`#${card}`);
-        console.log('Rendering playdown clickers');
         playCard.addEventListener('click', () => {
           playDownCard(playCard.id);
         });
@@ -444,9 +431,7 @@ function render(cardType, player) {
     if (player.name === 'Player 1') {
       player.endCards.forEach((card) => {
         const playCard = document.querySelector(`#${card}`);
-        console.log('Rendering playdown clickers');
         playCard.addEventListener('click', () => {
-          console.log('You should see me now');
           playEndCard(playCard.id);
         });
       });
@@ -454,27 +439,11 @@ function render(cardType, player) {
   }
 }
 
-// function renderEndCards(player){
-//   htmlContent = '';
-//   player.downCards.forEach(card => {
-//     htmlContent += `<input id="${card}" type="image" src='cards/${card}.svg'/>`;
-//   });
-//   player.name === 'CPU Player' ? cpuCardHolder.innerHTML = htmlContent : playerOpenCardHolder.innerHTML = htmlContent;
-//   player.downCards.forEach(card => {
-//     let playCard = document.querySelector(`#${card}`);
-//     playCard.addEventListener('click', () => {
-//       playersTurn(playCard.id);
-//     });
-//   });
-// }
-
 function allowedPlay(card) {
   let checkCard = 0;
   let playCard = convertClothedCard(card.substring(1));
-  console.log(playCard);
   if (openCard != null) checkCard = convertClothedCard(openCard.substring(1));
   if (playCard === '2') {
-    console.log('Should return startov');
     return 'startover';
   }
   if (playCard === '10') {
