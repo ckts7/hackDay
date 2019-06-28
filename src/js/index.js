@@ -115,7 +115,7 @@ function firstDeal() {
 }
 
 function playersTurn(cardPlayed) {
-  let accepted = false;
+  let accepted = '';
   const currentPlayer = players.filter((player) => {
     if (player.isTurn) {
       return player;
@@ -156,6 +156,9 @@ function playersTurn(cardPlayed) {
       const newCard = deck.pop();
       currentPlayer.cards.push(newCard);
     }
+    // currentPlayer.cards.concat(playedCards);
+    // playedCards.length = 0;
+    // openCard = null;
     currentPlayer.noPlay = true;
   }
   if (currentPlayer.noPlay) {
@@ -166,22 +169,39 @@ function playersTurn(cardPlayed) {
       deckHolder.innerHTML = `<img class='card' src='cards/RED_BACK.svg'><img class='card' src='cards/${openCard}.svg'>`;
     }
   }
-  currentPlayer.isTurn = !currentPlayer.isTurn;
-  restingPlayer.isTurn = !restingPlayer.isTurn;
+  // if (currentPlayer.cards.length >= 0) {
+  //   render('cards', currentPlayer);
+  // }
+  // if (currentPlayer.cards.length === 0 && currentPlayer.downCards.length > 0) {
+  //   console.log('I am inside of this fucking shit');
+  //   render('downCards', currentPlayer);
+  // }
   if (currentPlayer.cards.length >= 0) {
     render('cards', currentPlayer);
   }
   if (currentPlayer.cards.length === 0 && currentPlayer.downCards.length > 0) {
-    console.log('I am inside of this fucking shit');
     render('downCards', currentPlayer);
   }
-  setTimeout(() => {
-    computerTurn();
-  }, 1000);
+  if (accepted === 'startover') {
+    openCard = null; 
+  } else if (accepted === 'destroy') {
+    playedCards.length = 0;
+    openCard = null;
+  } else {
+    currentPlayer.isTurn = !currentPlayer.isTurn;
+    restingPlayer.isTurn = !restingPlayer.isTurn;
+    setTimeout(() => {
+      computerTurn();
+    }, 1000);
+
+  }
+  // if (accepted != 'destroy' || accepted != 'startover') {
+  // } else {
+  //   playersTurn();
+  // }
 }
 
 function playDownCard(cardPlayed) {
-  console.log('Hey plyDownCard');
   const currentPlayer = players.filter((player) => {
     if (player.isTurn) {
       return player;
@@ -292,13 +312,13 @@ function computerTurn() {
       return player;
     }
   })[0];
-  if(currentPlayer.cards.length > 0) {
+  if (currentPlayer.cards.length > 0) {
     cardType = 'cards';
   }
-  if(currentPlayer.cards.length == 0 && currentPlayer.downCards.length > 0) {
+  if (currentPlayer.cards.length == 0 && currentPlayer.downCards.length > 0) {
     cardType = 'downCards';
   }
-  if(currentPlayer.downCards.length == 0 && currentPlayer.endCards.length > 0) {
+  if (currentPlayer.downCards.length == 0 && currentPlayer.endCards.length > 0) {
     cardType = 'endCards';
   }
   currentPlayer.noPlay = false;
@@ -450,10 +470,18 @@ function render(cardType, player) {
 
 function allowedPlay(card) {
   let checkCard = 0;
-  const playCard = convertClothedCard(card.substring(1));
+  let playCard = convertClothedCard(card.substring(1));
+  console.log(playCard);
   if (openCard != null) checkCard = convertClothedCard(openCard.substring(1));
+  if (playCard === '2') {
+    console.log('Should return startov');
+    return 'startover';
+  }
+  if (playCard === '10') {
+    return 'destroy'
+  }
   if (playCard >= checkCard) {
-    return true;
+    return 'play';
   }
   return false;
 }
