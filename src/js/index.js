@@ -39,6 +39,7 @@ function createDeck() {
       deck.push(card);
     });
   });
+  deck = deck.splice(12,[20]);
   deck = shuffle(deck);
 }
 
@@ -124,6 +125,7 @@ function firstDeal() {
 }
 
 function playersTurn(cardPlayed) {
+  let cardType = '';
   let accepted = '';
   const currentPlayer = players.filter((player) => {
     if (player.isTurn) {
@@ -139,7 +141,16 @@ function playersTurn(cardPlayed) {
   if (restingPlayer.noPlay) {
     openCard = null;
   }
-  if (currentPlayer.cards.length <= 1) {
+  if (currentPlayer.cards.length > 0) {
+    cardType = 'cards';
+  }
+  if (currentPlayer.cards.length == 0 && currentPlayer.downCards.length > 0) {
+    cardType = 'downCards';
+  }
+  if (currentPlayer.downCards.length == 0 && currentPlayer.endCards.length > 0) {
+    cardType = 'endCards';
+  }
+  if (currentPlayer[cardType].length <= 1) {
     currentPlayer.downCards.forEach((card) => {
       const playCard = document.querySelector(`#${card}`);
       playCard.addEventListener('click', () => {
@@ -149,19 +160,19 @@ function playersTurn(cardPlayed) {
   }
   accepted = allowedPlay(cardPlayed);
   if (accepted) {
-    const moveToPlayed = currentPlayer.cards.splice(currentPlayer.cards.findIndex(card => card === cardPlayed), 1)[0];
+    const moveToPlayed = currentPlayer[cardType].splice(currentPlayer[cardType].findIndex(card => card === cardPlayed), 1)[0];
     playedCards.push(moveToPlayed);
     openCard = playedCards.slice(-1)[0];
     if (deck.length === 0) {
       deckHolder.innerHTML = `<img class='card' src='cards/${openCard}.svg'>`;
     } else {
       deckHolder.innerHTML = `<img class='card' src='cards/RED_BACK.svg'><img class='card' src='cards/${openCard}.svg'>`;
-    } if (deck.length > 0 && currentPlayer.cards.length < 3) {
+    } if (deck.length > 0 && currentPlayer[cardType].length < 3) {
       const newCard = deck.pop();
-      currentPlayer.cards.push(newCard);
+      currentPlayer[cardType].push(newCard);
     }
   } else {
-    currentPlayer.cards = [...currentPlayer.cards, ...playedCards];
+    currentPlayer[cardType] = [...currentPlayer[cardType], ...playedCards];
     playedCards.length = 0;
     openCard = null;
     currentPlayer.noPlay = true;
@@ -174,121 +185,18 @@ function playersTurn(cardPlayed) {
       deckHolder.innerHTML = `<img class='card' src='cards/RED_BACK.svg'><img class='card' src='cards/${openCard}.svg'>`;
     }
   }
-
   if (currentPlayer.cards.length >= 0) {
     render('cards', currentPlayer);
   }
   if (currentPlayer.cards.length === 0 && currentPlayer.downCards.length > 0) {
     render('downCards', currentPlayer);
   }
-  if (accepted === 'startover') {
-    openCard = null;
-  } else if (accepted === 'destroy') {
-    playedCards.length = 0;
-    openCard = null;
-  } else {
-    currentPlayer.isTurn = !currentPlayer.isTurn;
-    restingPlayer.isTurn = !restingPlayer.isTurn;
-    setTimeout(() => {
-      computerTurn();
-    }, 1000);
-  }
-}
-
-function playDownCard(cardPlayed) {
-  let accepted = ''
-  const currentPlayer = players.filter((player) => {
-    if (player.isTurn) {
-      return player;
-    }
-  })[0];
-  const restingPlayer = players.filter((player) => {
-    if (!player.isTurn) {
-      return player;
-    }
-  })[0];
-  accepted = allowedPlay(cardPlayed);
-  if (accepted) {
-    const moveToPlayed = currentPlayer.downCards.splice(currentPlayer.downCards.findIndex(card => card === cardPlayed), 1)[0];
-    playedCards.push(moveToPlayed);
-    openCard = playedCards.slice(-1)[0];
-    if (deck.length === 0) {
-      deckHolder.innerHTML = `<img class='card' src='cards/${openCard}.svg'>`;
-    } else {
-      deckHolder.innerHTML = `<img class='card' src='cards/RED_BACK.svg'><img class='card' src='cards/${openCard}.svg'>`;
-    }
-  } else {
-    currentPlayer.downCards = [...currentPlayer.downCards, ...playedCards];
-    playedCards.length = 0;
-    openCard = null;
-    currentPlayer.noPlay = true;
-  }
-  if (currentPlayer.noPlay) {
-    openCard = null;
-    deckHolder.innerHTML = `<img class='card' src='cards/${openCard}.svg'>`;
-  }
-  if (currentPlayer.downCards.length >= 0) {
+  if (currentPlayer.downCards.length === 0 && currentPlayer.endCards.length > 0) {
     render('downCards', currentPlayer);
-  }
-  if (currentPlayer.downCards.length === 0) {
-    render('endCards', currentPlayer);
-  }
-  if (accepted === 'startover') {
-    openCard = null;
-  } else if (accepted === 'destroy') {
-    playedCards.length = 0;
-    openCard = null;
-  } else {
-    currentPlayer.isTurn = !currentPlayer.isTurn;
-    restingPlayer.isTurn = !restingPlayer.isTurn;
-    setTimeout(() => {
-      computerTurn();
-    }, 1000);
-  }
-}
-
-function playEndCard(cardPlayed) {
-  const currentPlayer = players.filter((player) => {
-    if (player.isTurn) {
-      return player;
-    }
-  })[0];
-  const restingPlayer = players.filter((player) => {
-    if (!player.isTurn) {
-      return player;
-    }
-  })[0];
-  let accepted = false;
-  accepted = allowedPlay(cardPlayed);
-  if (accepted) {
-    console.log(currentPlayer.downCards);
-    const moveToPlayed = currentPlayer.endCards.splice(currentPlayer.endCards.findIndex(card => card === cardPlayed), 1)[0];
-    playedCards.push(moveToPlayed);
-    openCard = playedCards.slice(-1)[0];
-    if (deck.length === 0) {
-      deckHolder.innerHTML = `<img class='card' src='cards/${openCard}.svg'>`;
-    } else {
-      deckHolder.innerHTML = `<img class='card' src='cards/RED_BACK.svg'><img class='card' src='cards/${openCard}.svg'>`;
-    }
-  } else {
-    currentPlayer.endCards = [...currentPlayer.endCards, ...playedCards];
-    playedCards.length = 0;
-    openCard = null;
-    currentPlayer.noPlay = true;
-  }
-
-  if (currentPlayer.noPlay) {
-    openCard = null;
-    deckHolder.innerHTML = `<img class='card' src='cards/${openCard}.svg'>`;
-  }
-  if (currentPlayer.endCards.length >= 0) {
     render('endCards', currentPlayer);
   }
   if (currentPlayer.endCards.length === 0) {
-    render('endCards', currentPlayer);
-  }
-  if (currentPlayer.endCards.length === 0) {
-    playerEndCardHolder.innerHTML = '<h1>Winner!!!</h1>';
+    cpuEndCardHolder.innerHTML = '<h1>Winner!!!</h1>';
   }
   if (accepted === 'startover') {
     openCard = null;
@@ -342,12 +250,10 @@ function computerTurn() {
       }
       if (playableCard.length === 0) {
         if (playCard === '2') {
-          console.log('Should add special card');
           playableCard.push(compCard);
           accepted = 'startover';
         }
         if (playCard === '10') {
-          console.log('Should add special card');
           playableCard.push(compCard);
           accepted = 'destroy';
         }
@@ -460,7 +366,7 @@ function render(cardType, player) {
       player.downCards.forEach((card) => {
         const playCard = document.querySelector(`#${card}`);
         playCard.addEventListener('click', () => {
-          playDownCard(playCard.id);
+          playersTurn(playCard.id);
         });
       });
     }
@@ -471,7 +377,7 @@ function render(cardType, player) {
       player.endCards.forEach((card) => {
         const playCard = document.querySelector(`#${card}`);
         playCard.addEventListener('click', () => {
-          playEndCard(playCard.id);
+          playersTurn(playCard.id);
         });
       });
     }
