@@ -4,7 +4,7 @@
   "description": "HackDay Project for Christoffer Sundqvist",
   "main": "index.js",
   "scripts": {
-    "lint": "eslint . --fix",
+    "lint": "eslint .",
     "dev": "webpack-dev-server --",
     "eslint": "node_modules/.bin/eslint --init"
   },
