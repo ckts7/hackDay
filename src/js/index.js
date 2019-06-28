@@ -8,9 +8,11 @@ let deck = [];
 let playedCards = [];
 const cpuCardHolder = document.querySelector('.player1-card-holder');
 const cpuOpenCardHolder = document.querySelector('.player1-openCard-holder');
+const cpuEndCardHolder = document.querySelector('.player1-endCard-holder');
 const deckHolder = document.querySelector('.deck-holder');
 const playerCardHolder = document.querySelector('.player2-card-holder');
 const playerOpenCardHolder = document.querySelector('.player2-openCard-holder');
+const playerEndCardHolder = document.querySelector('.player2-endCard-holder');
 let openCard;
 
 const players = [];
@@ -33,6 +35,7 @@ function createDeck() {
       deck.push(card);
     });
   });
+  deck = deck.splice(10, [20]); // change deck back to 52 cards
   deck = shuffle(deck);
 }
 
@@ -52,12 +55,11 @@ function shuffle(array) {
 function firstDeal() {
   playedCards.push(deck.pop());
   players.forEach((player, index) => {
-    let htmlContent = '<h1>Hand: </h1>';
+    let htmlContent = '';
     let htmlContent3 = '';
+    let htmlContent2 = '';
     let i = 3;
     let k = 3
-
-    // console.log(index);
     if (index === 0) {
       while (i) {
         let card = deck.pop();
@@ -87,28 +89,15 @@ function firstDeal() {
       }
       playerCardHolder.innerHTML = htmlContent;
     }
-    // let htmlContent1 = '<h1>Hand: </h1>';
-    // let i = 3;
     let j = 3
-    // while (i) {
-    //   let card = deck.pop();
-    //   player.cards.push(card);
-    //   htmlContent1 += `<input id="${card}" type="image" src='cards/${card}.svg'/>`;
-    //   i--;
-    // }
     while (j) {
       let card = deck.pop();
       player.endCards.push(card);
+      htmlContent2 += `<input id="${card}" type="image" src='cards/RED_BACK.svg'/>`;
       j--;
     }
-    // while (k) {
-    //   let card = deck.pop();
-    //   player.downCards.push(card);
-    //   htmlContent3 += `<input id="${card}" type="image" src='cards/${card}.svg'/>`;
-    //   k--;
-    // }
-    // player.name === 'CPU Player' ? cpuCardHolder.innerHTML = htmlContent1 : playerCardHolder.innerHTML = htmlContent1;
     player.name === 'CPU Player' ? cpuOpenCardHolder.innerHTML = htmlContent3 : playerOpenCardHolder.innerHTML = htmlContent3;
+    player.name === 'CPU Player' ? cpuEndCardHolder.innerHTML = htmlContent2 : playerEndCardHolder.innerHTML = htmlContent2;
 
   });
   players[1].cards.forEach(card => {
@@ -120,12 +109,10 @@ function firstDeal() {
   openCard = playedCards.slice(-1)[0];
   deckHolder.innerHTML = `<img class='card' src='cards/RED_BACK.svg'><img class='card' src='cards/${openCard}.svg'>`
   players[1].isTurn = true;
-  // console.log(players);
-  // console.log(deck);
 }
 
 function playersTurn(cardPlayed) {
-  // console.log(players);
+  console.log(players[1]);
   let accepted = false;
   let currentPlayer = players.filter(player => {
     if (player.isTurn) {
@@ -141,17 +128,27 @@ function playersTurn(cardPlayed) {
   if (restingPlayer.noPlay) {
     openCard = null;
   }
+  console.log(currentPlayer.cards.length);
+  if (currentPlayer.cards.length <= 1) {
+    console.log('Here');
+    currentPlayer.downCards.forEach(card => {
+      let playCard = document.querySelector(`#${card}`);
+      playCard.addEventListener('click', () => {
+        console.log('Building clickListeners');
+        playDownCard(playCard.id, currentPlayer);
+      });
+    });
+  }
   accepted = allowedPlay(cardPlayed);
-  // console.log(accepted);
   if (accepted) {
-    // console.log('I am truly accepted');
     let moveToPlayed = currentPlayer.cards.splice(currentPlayer.cards.findIndex(card => card === cardPlayed), 1)[0];
     playedCards.push(moveToPlayed);
-    // console.log(moveToPlayed);
     openCard = playedCards.slice(-1)[0];
-    // console.log(openCard);
-    deckHolder.innerHTML = `<img class='card' src='cards/RED_BACK.svg'><img class='card' src='cards/${openCard}.svg'>`
-    if (deck.length > 0 && currentPlayer.cards.length < 3) {
+    if (deck.length === 0) {
+      deckHolder.innerHTML = `<img class='card' src='cards/${openCard}.svg'>`
+    } else {
+      deckHolder.innerHTML = `<img class='card' src='cards/RED_BACK.svg'><img class='card' src='cards/${openCard}.svg'>`
+    } if (deck.length > 0 && currentPlayer.cards.length < 3) {
       let newCard = deck.pop();
       currentPlayer.cards.push(newCard);
     }
@@ -159,24 +156,62 @@ function playersTurn(cardPlayed) {
     if (deck.length > 0) {
       let newCard = deck.pop();
       currentPlayer.cards.push(newCard);
-      currentPlayer.noPlay = true;
     }
+    currentPlayer.noPlay = true;
   }
   if (currentPlayer.noPlay) {
     openCard = null;
-    deckHolder.innerHTML = `<img class='card' src='cards/RED_BACK.svg'><img class='card' src='cards/${openCard}.svg'>`
+    if (deck.length === 0) {
+      deckHolder.innerHTML = `<img class='card' src='cards/${openCard}.svg'>`
+    } else {
+      deckHolder.innerHTML = `<img class='card' src='cards/RED_BACK.svg'><img class='card' src='cards/${openCard}.svg'>`
+    }
+  }
+  console.log('I am here');
+  currentPlayer.isTurn = !currentPlayer.isTurn;
+  restingPlayer.isTurn = !restingPlayer.isTurn;
+  render('cards', currentPlayer);
+  setTimeout(() => {
+    computerTurn();
+  }, 1000);
+}
+
+function playDownCard(cardPlayed, player) {
+  console.log('Hey plyDownCard');
+  let currentPlayer = players.filter(player => {
+    if (player.isTurn) {
+      return player;
+    }
+  })[0];
+  let restingPlayer = players.filter(player => {
+    if (!player.isTurn) {
+      return player;
+    }
+  })[0];
+  let accepted = false;
+  accepted = allowedPlay(cardPlayed);
+  if (accepted) {
+    let moveToPlayed = player.downCards.splice(player.downCards.findIndex(card => card === cardPlayed), 1)[0];
+    // console.log(moveToPlayed);
+    playedCards.push(moveToPlayed);
+    openCard = playedCards.slice(-1)[0];
+    if (deck.length === 0) {
+      deckHolder.innerHTML = `<img class='card' src='cards/${openCard}.svg'>`
+    } else {
+      deckHolder.innerHTML = `<img class='card' src='cards/RED_BACK.svg'><img class='card' src='cards/${openCard}.svg'>`
+    }
+  } else {
+    player.noPlay = true;
   }
   currentPlayer.isTurn = !currentPlayer.isTurn;
   restingPlayer.isTurn = !restingPlayer.isTurn;
-  renderNew(currentPlayer);
-  console.log(playedCards);
+  render('downCards', player);
   setTimeout(() => {
     computerTurn();
   }, 1000);
 }
 
 function computerTurn() {
-  // console.log(players[0].cards);
   let currentPlayer = players.filter(player => {
     if (player.isTurn) {
       return player;
@@ -188,8 +223,6 @@ function computerTurn() {
     }
   })[0];
   currentPlayer.noPlay = false;
-  // console.log('Computer thinking');
-  console.log(openCard);
   let playableCard = [];
   if (!restingPlayer.noPlay) {
     let checkCard = convertClothedCard(openCard.substring(1));
@@ -202,68 +235,113 @@ function computerTurn() {
   }
   if (restingPlayer.noPlay) {
     playableCard = [...currentPlayer.cards];
-    console.log('Curr', currentPlayer.cards);
     openCard = null;
   }
-  if(playableCard.length > 0) {
-    console.log('Playable', playableCard);
-    playableCard = playableCard.sort();
+  if (playableCard.length > 0) {
+    playableCard = playableCard.sort(compSorter);
     let moveToPlayed = currentPlayer.cards.splice(currentPlayer.cards.findIndex(card => card === playableCard[0]), 1)[0];
     playedCards.push(moveToPlayed);
     openCard = playedCards.slice(-1)[0];
-    deckHolder.innerHTML = `<img class='card' src='cards/RED_BACK.svg'><img class='card' src='cards/${openCard}.svg'>`
+    if (deck.length === 0) {
+      deckHolder.innerHTML = `<img class='card' src='cards/${openCard}.svg'>`
+    } else {
+      deckHolder.innerHTML = `<img class='card' src='cards/RED_BACK.svg'><img class='card' src='cards/${openCard}.svg'>`
+    }
     if (deck.length > 0 && currentPlayer.cards.length < 3) {
       let newCard = deck.pop();
       currentPlayer.cards.push(newCard);
     }
-  } 
+  }
   else {
     if (deck.length > 0) {
       let newCard = deck.pop();
       currentPlayer.cards.push(newCard);
-      currentPlayer.noPlay = true;
     }
+    currentPlayer.noPlay = true;
+  }
+  console.log('Can comp play?', currentPlayer.noPlay);
+  console.log('Computer cards', currentPlayer.cards.length);
+  if (currentPlayer.cards.length === 0) { // this function should be removed in game ready
+    currentPlayer.noPlay = true;
   }
   if (currentPlayer.noPlay) {
+    console.log('Comp turn, inside noPlay');
     openCard = null;
-    deckHolder.innerHTML = `<img class='card' src='cards/RED_BACK.svg'><img class='card' src='cards/${openCard}.svg'>`
+    if (deck.length === 0) {
+      deckHolder.innerHTML = `<img class='card' src='cards/${openCard}.svg'>`
+    } else {
+      deckHolder.innerHTML = `<img class='card' src='cards/RED_BACK.svg'><img class='card' src='cards/${openCard}.svg'>`
+    }
   }
   currentPlayer.isTurn = !currentPlayer.isTurn;
   restingPlayer.isTurn = !restingPlayer.isTurn;
-  console.log(playedCards);
-
   renderComp(currentPlayer);
 }
 
+function compSorter(a, b) {
+  a = convertClothedCard(a.substring(1));
+  b = convertClothedCard(b.substring(1));
+  if (a > b) {
+    return 1;
+  }
+  if (a < b) {
+    return -1;
+  }
+}
+
 function renderComp(player) {
-  htmlContent = '<h1>Hand: </h1>';
+  htmlContent = '';
   player.cards.forEach(card => {
     htmlContent += `<input id="${card}" type="image" src='cards/${card}.svg'/>`;
   });
   player.name === 'CPU Player' ? cpuCardHolder.innerHTML = htmlContent : playerCardHolder.innerHTML = htmlContent;
 }
 
-function renderNew(player) {
-  htmlContent = '<h1>Hand: </h1>';
-  player.cards.forEach(card => {
+function render(cardType, player) {
+  htmlContent = '';
+  player[cardType].forEach(card => {
     htmlContent += `<input id="${card}" type="image" src='cards/${card}.svg'/>`;
   });
-  player.name === 'CPU Player' ? cpuCardHolder.innerHTML = htmlContent : playerCardHolder.innerHTML = htmlContent;
-  player.cards.forEach(card => {
-    let playCard = document.querySelector(`#${card}`);
-    playCard.addEventListener('click', () => {
-      playersTurn(playCard.id);
+  if (cardType === 'cards') {
+    player.name === 'CPU Player' ? cpuCardHolder.innerHTML = htmlContent : playerCardHolder.innerHTML = htmlContent;
+    player[cardType].forEach(card => {
+      let playCard = document.querySelector(`#${card}`);
+      console.log(playCard);
+      playCard.addEventListener('click', () => {
+        playersTurn(playCard.id);
+      });
     });
-  });
+  }
+  if (cardType === 'downCards') {
+    player.name === 'CPU Player' ? cpuOpenCardHolder.innerHTML = htmlContent : playerOpenCardHolder.innerHTML = htmlContent;
+    player.downCards.forEach(card => {
+      let playCard = document.querySelector(`#${card}`);
+      console.log(playCard);
+      playCard.addEventListener('click', () => {
+        playDownCard(playCard.id);
+      });
+    });
+  }
 }
+
+// function renderEndCards(player){
+//   htmlContent = '';
+//   player.downCards.forEach(card => {
+//     htmlContent += `<input id="${card}" type="image" src='cards/${card}.svg'/>`;
+//   });
+//   player.name === 'CPU Player' ? cpuCardHolder.innerHTML = htmlContent : playerOpenCardHolder.innerHTML = htmlContent;
+//   player.downCards.forEach(card => {
+//     let playCard = document.querySelector(`#${card}`);
+//     playCard.addEventListener('click', () => {
+//       playersTurn(playCard.id);
+//     });
+//   });
+// }
 
 function allowedPlay(card) {
   let checkCard = 0;
   let playCard = convertClothedCard(card.substring(1));
-  // console.log(openCard);
-  if (openCard != null) {
-    checkCard = convertClothedCard(openCard.substring(1));
-  }
+  if (openCard != null) checkCard = convertClothedCard(openCard.substring(1));
   if (playCard >= checkCard) {
     return true;
   } else {
@@ -286,5 +364,9 @@ function convertClothedCard(card) {
   }
 }
 
-createDeck();
-firstDeal();
+let startButton = document.querySelector('.startgame');
+startButton.addEventListener('click', () => {
+  createDeck();
+  firstDeal();
+  startButton.style.display = 'none';
+});

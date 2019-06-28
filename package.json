@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "lint": "eslint . --fix",
-    "dev": "webpack-dev-server --"
+    "dev": "webpack-dev-server --",
+    "eslint": "node_modules/.bin/eslint --init"
   },
   "repository": {
     "type": "git",
@@ -22,9 +23,9 @@
     "url": "https://github.com/saltsthlm/salt-spring19-hackdayW09/issues"
   },
   "devDependencies": {
-    "eslint": "^5.15.3",
+    "eslint": "^5.16.0",
     "eslint-config-airbnb-base": "^13.1.0",
-    "eslint-plugin-import": "^2.16.0"
+    "eslint-plugin-import": "^2.18.0"
   },
   "dependencies": {
     "webpack": "^4.35.0",
