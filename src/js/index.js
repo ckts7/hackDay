@@ -145,7 +145,7 @@ function createDeck() {
       deck.push(card);
     });
   });
-  deck = deck.splice(12, [20]);
+  deck = deck.splice(12, [22]); // cut's deck size to test final features
   deck = shuffle(deck);
 }
 
